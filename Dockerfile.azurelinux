@@ -1,0 +1,99 @@
+# Dockerfile for n8n using Azure Linux 3
+# Azure Linux 3 is a lightweight, secure, and optimized Linux distribution for Azure workloads
+FROM mcr.microsoft.com/azurelinux/base/core:3.0
+
+# Set metadata
+LABEL org.opencontainers.image.title="n8n on Azure Linux 3"
+LABEL org.opencontainers.image.description="n8n workflow automation tool running on Azure Linux 3"
+LABEL org.opencontainers.image.vendor="Azure Linux"
+LABEL org.opencontainers.image.version="1.0"
+
+# Set environment variables for n8n configuration
+ENV N8N_VERSION=latest
+ENV N8N_USER_ID=1000
+ENV N8N_USER_GROUP=1000
+ENV N8N_USER_NAME=n8n
+ENV N8N_USER_HOME=/home/n8n
+ENV N8N_BASIC_AUTH_ACTIVE=true
+ENV N8N_HOST=0.0.0.0
+ENV N8N_PORT=5678
+ENV N8N_PROTOCOL=http
+ENV N8N_LOG_LEVEL=info
+ENV N8N_LOG_OUTPUT=console
+ENV NODE_ENV=production
+ENV NODE_VERSION=22.12.0
+ENV TZ=UTC
+
+# Install system dependencies first (including shadow-utils for user management)
+# Note: Azure Linux uses tdnf package manager
+RUN tdnf update -y && \
+    tdnf install -y \
+        shadow-utils \
+        ca-certificates \
+        curl \
+        tar \
+        xz \
+        && \
+    tdnf clean all
+
+# Install Node.js LTS version that satisfies >=20.19 <= 24.x
+# Detect architecture and download appropriate Node.js binary
+RUN ARCH=$(uname -m) && \
+    if [ "$ARCH" = "x86_64" ]; then \
+        NODE_ARCH="x64"; \
+    elif [ "$ARCH" = "aarch64" ]; then \
+        NODE_ARCH="arm64"; \
+    else \
+        echo "Unsupported architecture: $ARCH" && exit 1; \
+    fi && \
+    curl -fsSL https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-${NODE_ARCH}.tar.xz -o /tmp/node.tar.xz && \
+    tar -xJf /tmp/node.tar.xz -C /usr/local --strip-components=1 && \
+    rm /tmp/node.tar.xz && \
+    ln -sf /usr/local/bin/node /usr/bin/node && \
+    ln -sf /usr/local/bin/npm /usr/bin/npm && \
+    ln -sf /usr/local/bin/npx /usr/bin/npx
+    
+# Create n8n user and group for security (after installing shadow-utils)
+RUN groupadd -g ${N8N_USER_GROUP} ${N8N_USER_NAME} && \
+    useradd -u ${N8N_USER_ID} -g ${N8N_USER_GROUP} -m -d ${N8N_USER_HOME} -s /bin/bash ${N8N_USER_NAME}
+
+# Set npm configuration for security and performance
+RUN npm config set fund false && \
+    npm config set audit-level moderate && \
+    npm config set cache /tmp/.npm
+
+# Install n8n globally
+RUN npm install -g n8n@${N8N_VERSION} && \
+    npm cache clean --force
+
+# Create necessary directories with proper permissions
+RUN mkdir -p ${N8N_USER_HOME}/.n8n && \
+    mkdir -p ${N8N_USER_HOME}/.n8n/nodes && \
+    mkdir -p /data && \
+    chown -R ${N8N_USER_NAME}:${N8N_USER_NAME} ${N8N_USER_HOME} && \
+    chown -R ${N8N_USER_NAME}:${N8N_USER_NAME} /data
+
+# Set working directory
+WORKDIR ${N8N_USER_HOME}
+
+# Copy any custom configuration files (if they exist)
+# COPY --chown=${N8N_USER_NAME}:${N8N_USER_NAME} config/ ${N8N_USER_HOME}/.n8n/
+
+# Switch to non-root user for security
+USER ${N8N_USER_NAME}
+
+# Health check to ensure n8n is running properly
+# HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+#     CMD curl -f http://localhost:${N8N_PORT}/healthz || exit 1
+
+# Expose the port n8n runs on
+EXPOSE ${N8N_PORT}
+
+# Volume for persistent data
+VOLUME ["/data"]
+
+# Set data directory for n8n
+ENV N8N_USER_FOLDER=/data
+
+# Start n8n
+CMD ["n8n", "start"]
