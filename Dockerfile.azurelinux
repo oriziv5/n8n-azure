@@ -18,11 +18,28 @@ ENV N8N_BASIC_AUTH_ACTIVE=true
 ENV N8N_HOST=0.0.0.0
 ENV N8N_PORT=5678
 ENV N8N_PROTOCOL=http
-ENV N8N_LOG_LEVEL=info
 ENV N8N_LOG_OUTPUT=console
+ENV N8N_TRUST_PROXY=true
+ENV N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=false
+ENV N8N_DB_POSTGRESQL_SSL_REJECT_UNAUTHORIZED=false
+ENV N8N_DB_POSTGRESDB_CONNECTION_TIMEOUT=3000
+ENV N8N_DB_POSTGRESDB_SSL_REJECT_UNAUTHORIZED=false
+ENV N8N_RUNNERS_ENABLED=true
+ENV N8N_PROXY_HOPS=1
+ENV N8N_LOG_LEVEL=error
+ENV N8N_DIAGNOSTICS_ENABLED=false
+ENV N8N_VERSION_CHECK_ENABLED=false
+ENV N8N_TEMPLATES_ENABLED=false
+ENV N8N_DISABLE_EXTERNAL_ERROR_REPORTING=true
+ENV N8N_LOG_OUTPUT="console"
+ENV N8N_SAMESITE_COOKIE="strict"
+ENV N8N_GIT_NODE_DISABLE_BARE_REPOS=true
+
 ENV NODE_ENV=production
-ENV NODE_VERSION=22.12.0
+ENV NODE_VERSION=24.9.0
 ENV TZ=UTC
+
+
 
 # Install system dependencies first (including shadow-utils for user management)
 # Note: Azure Linux uses tdnf package manager
@@ -30,9 +47,7 @@ RUN tdnf update -y && \
     tdnf install -y \
         shadow-utils \
         ca-certificates \
-        curl \
         tar \
-        xz \
         && \
     tdnf clean all
 
@@ -62,9 +77,11 @@ RUN npm config set fund false && \
     npm config set audit-level moderate && \
     npm config set cache /tmp/.npm
 
+# Update npm
+RUN npm install -g npm@latest
+
 # Install n8n globally
-RUN npm install -g n8n@${N8N_VERSION} && \
-    npm cache clean --force
+RUN npm install -g n8n@${N8N_VERSION}
 
 # Create necessary directories with proper permissions
 RUN mkdir -p ${N8N_USER_HOME}/.n8n && \

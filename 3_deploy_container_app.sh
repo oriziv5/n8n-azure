@@ -1174,6 +1174,15 @@ else
     echo "   az containerapp secret set --name '${CONTAINER_APP_NAME}' --resource-group '${RESOURCE_GROUP}' --secrets n8n-encryption-key='keyvaultref:https://${KEYVAULT_NAME}.vault.azure.net/secrets/N8N-Encryption-Key,identityref:system'"
 fi
 
+
+# 14. Get Container App URL
+log_message "Retrieving Container App URL..."
+CONTAINER_APP_URL=$(az containerapp show \
+    --name "${CONTAINER_APP_NAME}" \
+    --resource-group "${RESOURCE_GROUP}" \
+    --query "properties.configuration.ingress.fqdn" \
+    --output tsv)
+
 # 13. Update Container App with environment variables (always runs)
 log_message "Updating Container App with environment variables..."
 log_message "Note: Environment variables are updated on every run to ensure latest configuration."
@@ -1189,24 +1198,10 @@ az containerapp update \
         DB_POSTGRESDB_USER="${DB_ADMIN_USER}" \
         DB_POSTGRESDB_PASSWORD="secretref:n8n-db-password" \
         GENERIC_TIMEZONE=Asia/Jerusalem \
-        N8N_BASIC_AUTH_ACTIVE=true \
         N8N_BASIC_AUTH_USER="${N8N_USERNAME}" \
         N8N_BASIC_AUTH_PASSWORD="secretref:n8n-admin-password" \
-        TRUST_PROXY=true \
-        N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=false \
-        DB_POSTGRESQL_SSL_REJECT_UNAUTHORIZED=false \
-        DB_POSTGRESDB_CONNECTION_TIMEOUT=3000 \
-        DB_POSTGRESDB_SSL_REJECT_UNAUTHORIZED=false \
-        N8N_RUNNERS_ENABLED=true \
-        N8N_PROXY_HOPS=1 \
-        N8N_LOG_LEVEL=error \
-        N8N_DIAGNOSTICS_ENABLED=false \
-        N8N_VERSION_CHECK_ENABLED=false \
-        N8N_TEMPLATES_ENABLED=false \
-        N8N_DISABLE_EXTERNAL_ERROR_REPORTING=false \
-        N8N_LOG_OUTPUT="console"
-        # N8N_EDITOR_BASE_URL="https://${N8N_DOMAIN}/" \
-        # WEBHOOK_URL="https://${N8N_DOMAIN}/" 
+        N8N_EDITOR_BASE_URL="https://${CONTAINER_APP_URL}/" \
+        WEBHOOK_URL="https://${CONTAINER_APP_URL}/"
 
 if [[ $? -eq 0 ]]; then
     log_message "✅ Container App environment variables updated successfully."
@@ -1215,13 +1210,7 @@ else
     exit 1
 fi
 
-# 14. Get Container App URL
-log_message "Retrieving Container App URL..."
-CONTAINER_APP_URL=$(az containerapp show \
-    --name "${CONTAINER_APP_NAME}" \
-    --resource-group "${RESOURCE_GROUP}" \
-    --query "properties.configuration.ingress.fqdn" \
-    --output tsv)
+
 
 # 15. Display deployment summary
 echo ""
