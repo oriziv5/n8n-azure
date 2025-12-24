@@ -4,29 +4,21 @@
 
 echo "[$(date)] Starting n8n Container App deployment script..."
 
-# Required Configuration Variables
+# Load common configuration
+if [[ -f "common.sh" ]]; then
+    source ./common.sh
+else
+    echo "Error: common.sh not found."
+    exit 1
+fi
+
+# Generated Configuration Variables
 ADMIN_PASSWORD=$(openssl rand -base64 32)  # Generate secure password
 N8N_ENCRYPTION_KEY=$(openssl rand -base64 32)  # Generate secure key
-CONTAINER_APP_NAME="my-n8n-app-linux"
-LOCATION="northeurope"  # Change to your desired Azure region (valid regions: northeurope, eastus, westus2, etc.)
-RESOURCE_GROUP="n8n-rg-northeurope-linux"  # Change to your desired resource group name
-CONTAINER_APP_ENV_NAME="n8n-containerapp-env" # Change to your Container App Environment name
-ACR_NAME="n8nacr"  # Change to your Azure Container Registry name
-IMAGE_NAME="n8n-azure-linux-main" # Change to your desired image name
-KEYVAULT_NAME="n8n-kv"  # Make Key Vault name unique
-
-# Database server configuration
-DB_SERVER_NAME="mypostgress-n8n-db-server2"  # Replace with your desired server name (fixed: removed special character)
-DB_ADMIN_USER="n8n_admin"      # Replace with your desired admin username
-DB_NAME="n8n"                  # Database name
-DB_PASSWORD="${ADMIN_PASSWORD}" # Replace with your desired database password
+DB_PASSWORD="${ADMIN_PASSWORD}" # Use generated password for database
 
 # Calculate DB_HOST based on server name
 DB_HOST="${DB_SERVER_NAME}.postgres.database.azure.com"
-
-# N8N Configuration
-N8N_DOMAIN="your-n8n-domain.com"  # Replace with your actual domain
-N8N_USERNAME="admin"  # Replace with your desired username
 
 # Validate required variables
 echo "[$(date)] Validating required variables..."
@@ -43,11 +35,6 @@ echo "[$(date)] Validating required variables..."
 [[ -z "${IMAGE_NAME}" ]] && { echo "Error: IMAGE_NAME is not set"; exit 1; }
 [[ -z "${CONTAINER_APP_ENV_NAME}" ]] && { echo "Error: CONTAINER_APP_ENV_NAME is not set"; exit 1; }
 echo "[$(date)] Variable validation completed."
-
-# Function for timestamped logging
-log_message() {
-    echo "[$(date)] $1"
-}
 
 # Function to check if RBAC role assignment already exists
 check_rbac_assignment_exists() {
