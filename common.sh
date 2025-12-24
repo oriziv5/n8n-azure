@@ -8,7 +8,7 @@
 # The Azure region where resources will be created
 export LOCATION="northeurope"
 # The name of the resource group
-export RESOURCE_GROUP="n8n-rg-northeurope-linux-to-delete1"
+export RESOURCE_GROUP="n8n-rg-northeurope-linux"
 
 # --- Container App Environment Configuration ---
 # The name of the Container App Environment
