@@ -10,11 +10,10 @@ N8N_ENCRYPTION_KEY=$(openssl rand -base64 32)  # Generate secure key
 CONTAINER_APP_NAME="my-n8n-app-linux"
 LOCATION="northeurope"  # Change to your desired Azure region (valid regions: northeurope, eastus, westus2, etc.)
 RESOURCE_GROUP="n8n-rg-northeurope-linux"  # Change to your desired resource group name
-WORKLOAD_PROFILE_NAME="n8n-workload-profile"
-ENV_NAME="n8n-env"
-ACR_NAME="mypersonalacr"  # Change to your Azure Container Registry name
-IMAGE_NAME="n8n-azure-linux"  # Change to your desired image name
-KEYVAULT_NAME="n8n-edgeai-kv-test"  # Make Key Vault name unique
+CONTAINER_APP_ENV_NAME="n8n-containerapp-env" # Change to your Container App Environment name
+ACR_NAME="n8nacr"  # Change to your Azure Container Registry name
+IMAGE_NAME="n8n-azure-linux-main" # Change to your desired image name
+KEYVAULT_NAME="n8n-kv"  # Make Key Vault name unique
 
 # Database server configuration
 DB_SERVER_NAME="mypostgress-n8n-db-server2"  # Replace with your desired server name (fixed: removed special character)
@@ -42,7 +41,7 @@ echo "[$(date)] Validating required variables..."
 [[ -z "${N8N_DOMAIN}" ]] && { echo "Error: N8N_DOMAIN is not set"; exit 1; }
 [[ -z "${KEYVAULT_NAME}" ]] && { echo "Error: KEYVAULT_NAME is not set"; exit 1; }
 [[ -z "${IMAGE_NAME}" ]] && { echo "Error: IMAGE_NAME is not set"; exit 1; }
-[[ -z "${WORKLOAD_PROFILE_NAME}" ]] && { echo "Error: WORKLOAD_PROFILE_NAME is not set"; exit 1; }
+[[ -z "${CONTAINER_APP_ENV_NAME}" ]] && { echo "Error: CONTAINER_APP_ENV_NAME is not set"; exit 1; }
 echo "[$(date)] Variable validation completed."
 
 # Function for timestamped logging
@@ -300,10 +299,10 @@ validate_azure_name "acr" "${ACR_NAME}" || exit 1
 echo "[$(date)] ✅ All resource names are valid."
 
 # 1. Check if Container App Environment exists
-if check_resource_exists "containerapp-env" "${ENV_NAME}" "${RESOURCE_GROUP}"; then
-    echo "[$(date)] ✅ Container App Environment '${ENV_NAME}' already exists."
+if check_resource_exists "containerapp-env" "${CONTAINER_APP_ENV_NAME}" "${RESOURCE_GROUP}"; then
+    echo "[$(date)] ✅ Container App Environment '${CONTAINER_APP_ENV_NAME}' already exists."
 else
-    echo "❌ Error: Container App Environment '${ENV_NAME}' does not exist."
+    echo "❌ Error: Container App Environment '${CONTAINER_APP_ENV_NAME}' does not exist."
     echo "Please run script 1_create_workload_profile.sh first to create the environment."
     exit 1
 fi
@@ -560,7 +559,7 @@ else
     az containerapp create \
         --name "${CONTAINER_APP_NAME}" \
         --resource-group "${RESOURCE_GROUP}" \
-        --environment "${ENV_NAME}" \
+        --environment "${CONTAINER_APP_ENV_NAME}" \
         --image "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest" \
         --cpu 2.0 \
         --memory 4Gi \
