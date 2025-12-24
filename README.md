@@ -237,6 +237,9 @@ Register the necessary Azure providers:
 ```bash
 az provider register --namespace Microsoft.App
 az provider register --namespace Microsoft.OperationalInsights
+az provider register --namespace Microsoft.DBforPostgreSQL
+az provider register --namespace Microsoft.KeyVault
+az provider register --namespace Microsoft.ContainerRegistry
 ```
 
 ---
