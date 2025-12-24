@@ -1,10 +1,13 @@
 #!/bin/bash
 echo "[$(date)] Starting workload profile creation script..."
 
-# Required Configuration Variables
-RESOURCE_GROUP="n8n-rg-northeurope-linux"  # Change to your desired resource group name
-LOCATION="northeurope"  # Change to your desired Azure region
-CONTAINER_APP_ENV_NAME="n8n-containerapp-env"  # Change to your desired workload profile name
+# Load common configuration
+if [[ -f "common.sh" ]]; then
+    source ./common.sh
+else
+    echo "Error: common.sh not found."
+    exit 1
+fi
 
 # Validate required variables
 echo "[$(date)] Validating required variables..."

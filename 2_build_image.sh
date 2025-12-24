@@ -1,12 +1,13 @@
 #!/bin/bash
 echo "[$(date)] Starting Azure Container Registry build script..."
 
-# Required Configuration Variables
-ACR_NAME="mypersonalacr"  # Change to your Azure Container Registry name
-IMAGE_NAME="n8n-azure-linux-main"  # Change to your desired image name
-RESOURCE_GROUP="n8n-rg-northeurope-linux"  # Change to your resource group name
-LOCATION="northeurope"  # Change to your desired Azure region
-DOCKERFILE_PATH="Dockerfile.azurelinux"  # Change to your Dockerfile path (default: Dockerfile)
+# Load common configuration
+if [[ -f "common.sh" ]]; then
+    source ./common.sh
+else
+    echo "Error: common.sh not found."
+    exit 1
+fi
 
 # Validate required variables
 echo "[$(date)] Validating required variables..."

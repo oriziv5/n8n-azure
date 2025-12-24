@@ -232,15 +232,39 @@ az extension add --name containerapp --upgrade
 
 ### 1.4 Register Required Providers
 
-Register the necessary Azure providers:
+We have provided a script to automatically check and register all required Azure providers.
 
 ```bash
-az provider register --namespace Microsoft.App
-az provider register --namespace Microsoft.OperationalInsights
-az provider register --namespace Microsoft.DBforPostgreSQL
-az provider register --namespace Microsoft.KeyVault
-az provider register --namespace Microsoft.ContainerRegistry
+# Make the script executable
+chmod +x 0_prerequisites.sh
+
+# Run the script
+./0_prerequisites.sh
 ```
+
+This script will ensure the following providers are registered:
+- Microsoft.App
+- Microsoft.OperationalInsights
+- Microsoft.DBforPostgreSQL
+- Microsoft.KeyVault
+- Microsoft.ContainerRegistry
+
+### 1.5 Configure Common Variables
+
+We use a central configuration file `common.sh` to manage all variables. Open this file and customize the values according to your needs.
+
+```bash
+# Edit common.sh
+nano common.sh
+```
+
+Key variables to configure:
+- **Azure Region & Resource Group**: `LOCATION`, `RESOURCE_GROUP`
+- **Container App**: `CONTAINER_APP_ENV_NAME`, `CONTAINER_APP_NAME`
+- **Registry**: `ACR_NAME`, `IMAGE_NAME`
+- **Database**: `DB_SERVER_NAME`, `DB_ADMIN_USER`, `DB_NAME`
+- **Key Vault**: `KEYVAULT_NAME`
+- **n8n**: `N8N_DOMAIN`, `N8N_USERNAME`
 
 ---
 
@@ -250,21 +274,11 @@ This step creates the foundational infrastructure for your n8n deployment.
 
 ### 2.1 Configure Variables
 
-Open the script `1_create_workload_profile.sh` and customize these variables:
+Ensure you have configured the following variables in `common.sh`:
 
-```bash
-# Edit these values according to your preferences
-RESOURCE_GROUP="n8n-eg-northeurope-linux"  # Your resource group name
-LOCATION="northeurope"                      # Your preferred Azure region
-WORKLOAD_PROFILE_NAME="n8n-workload-profile"
-ENV_NAME="n8n-env"
-```
-
-**What each variable means:**
 - `RESOURCE_GROUP`: Container for all your n8n resources
 - `LOCATION`: Azure region where resources will be created
-- `WORKLOAD_PROFILE_NAME`: Defines compute resources for your container
-- `ENV_NAME`: Environment that hosts your container apps
+- `CONTAINER_APP_ENV_NAME`: Environment that hosts your container apps
 
 ### 2.2 Run the Environment Creation Script
 
@@ -313,16 +327,11 @@ Our custom `Dockerfile.azurelinux` provides:
 
 ### 3.2 Configure Build Variables
 
-Open `2_build_image.sh` and customize these variables:
+Ensure you have configured the following variables in `common.sh`:
 
-```bash
-# Edit these values
-ACR_NAME="your-unique-acr-name"  # Must be globally unique (alphanumeric only)
-IMAGE_NAME="n8n-azure"           # Your image name
-RESOURCE_GROUP="n8n-eg-northeurope-linux"  # Same as step 2
-LOCATION="northeurope"           # Same as step 2
-DOCKERFILE_PATH="Dockerfile.azurelinux"  # Change to your Dockerfile path (default: Dockerfile)
-```
+- `ACR_NAME`: Must be globally unique (alphanumeric only)
+- `IMAGE_NAME`: Your image name
+- `DOCKERFILE_PATH`: Path to your Dockerfile
 
 **Important Notes:**
 - `ACR_NAME` must be globally unique across all of Azure
@@ -372,26 +381,12 @@ This is the final deployment step that creates your running n8n application.
 
 ### 4.1 Configure Deployment Variables
 
-Open `3_deploy_container_app.sh` and customize these critical variables:
+Ensure you have configured the following variables in `common.sh`:
 
-```bash
-# Application Configuration
-CONTAINER_APP_NAME="my-n8n-app"              # Your app name
-LOCATION="northeurope"                       # Same as previous steps
-RESOURCE_GROUP="n8n-rg-northeurope"         # Resource group name
-ACR_NAME="yourn8nacr"                        # Same ACR name from step 3
-IMAGE_NAME="n8n-azure"                       # Same image name from step 3
-
-# Database Configuration
-DB_SERVER_NAME="your-n8n-db-server"         # Unique database server name
-DB_ADMIN_USER="n8n_admin"                   # Database admin username
-DB_NAME="n8n"                               # Database name
-
-# n8n Configuration
-N8N_DOMAIN="your-domain.com"                # Your domain (or use provided URL later)
-N8N_USERNAME="admin"                        # n8n admin username
-KEYVAULT_NAME="your-n8n-kv"                 # Unique Key Vault name
-```
+- **Application**: `CONTAINER_APP_NAME`
+- **Database**: `DB_SERVER_NAME`, `DB_ADMIN_USER`, `DB_NAME`
+- **n8n**: `N8N_DOMAIN`, `N8N_USERNAME`
+- **Key Vault**: `KEYVAULT_NAME`
 
 **Security Note**: The script automatically generates secure passwords and encryption keys.
 
