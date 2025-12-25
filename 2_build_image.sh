@@ -115,7 +115,7 @@ fi
 echo "[$(date)] Building and pushing Docker image '${IMAGE_NAME}:latest' to ACR using '${DOCKERFILE_PATH}'..."
 az acr build \
   --registry "${ACR_NAME}" \
-  --image "${IMAGE_NAME}:latest" \
+  --image "${IMAGE_NAME}:${IMAGE_TAG}" \
   --file "${DOCKERFILE_PATH}" \
   .
 

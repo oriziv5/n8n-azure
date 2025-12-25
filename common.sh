@@ -8,7 +8,7 @@
 # The Azure region where resources will be created
 export LOCATION="northeurope"
 # The name of the resource group
-export RESOURCE_GROUP="n8n-rg-northeurope-linux"
+export RESOURCE_GROUP="n8n-rg-northeurope"
 
 # --- Container App Environment Configuration ---
 # The name of the Container App Environment
@@ -20,7 +20,8 @@ export CONTAINER_APP_NAME="my-n8n-app-linux"
 # The name of your Azure Container Registry (must be globally unique)
 export ACR_NAME="n8nacr"
 # The name of the image to build and deploy
-export IMAGE_NAME="n8n-azure-linux-main"
+export IMAGE_NAME="n8n-azurelinux3"
+export IMAGE_TAG="latest"
 # Path to the Dockerfile to use for building the image
 export DOCKERFILE_PATH="Dockerfile.azurelinux"
 
