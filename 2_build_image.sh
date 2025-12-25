@@ -115,7 +115,7 @@ fi
 echo "[$(date)] Building and pushing Docker image '${IMAGE_NAME}:latest' to ACR using '${DOCKERFILE_PATH}'..."
 az acr build \
   --registry "${ACR_NAME}" \
-  --image "${IMAGE_NAME}:latest" \
+  --image "${IMAGE_NAME}:${IMAGE_TAG}" \
   --file "${DOCKERFILE_PATH}" \
   .
 
@@ -130,7 +130,7 @@ fi
 echo "[$(date)] Verifying image '${IMAGE_NAME}:latest' in registry..."
 IMAGE_EXISTS=$(az acr repository show \
   --name "${ACR_NAME}" \
-  --image "${IMAGE_NAME}:latest" \
+  --image "${IMAGE_NAME}:${IMAGE_TAG}" \
   --query "name" \
   --output tsv 2>/dev/null)
 
@@ -141,7 +141,7 @@ if [[ -n "${IMAGE_EXISTS}" ]]; then
   echo "[$(date)] Image details:"
   az acr repository show \
     --name "${ACR_NAME}" \
-    --image "${IMAGE_NAME}:latest" \
+    --image "${IMAGE_NAME}:${IMAGE_TAG}" \
     --output table
     
   # Show repository tags
